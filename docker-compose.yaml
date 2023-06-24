@@ -10,6 +10,8 @@ services:
       - "zookeeper-volume:/bitnami"
     environment:
       - ALLOW_ANONYMOUS_LOGIN=yes
+    networks:
+      - purple-clouds-network
 
   kafka:
     restart: always
@@ -28,7 +30,12 @@ services:
       - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=CLIENT
     depends_on:
       - zookeeper
+    networks:
+      - purple-clouds-network
 
 volumes:
   zookeeper-volume:
   kafka-volume:
+
+networks:
+  purple-clouds-network:
