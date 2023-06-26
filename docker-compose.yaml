@@ -7,7 +7,7 @@ services:
     ports:
       - "2181:2181"
     volumes:
-      - "zookeeper-volume:/bitnami"
+      - zookeeper-volume:/bitnami
     environment:
       - ALLOW_ANONYMOUS_LOGIN=yes
     networks:
