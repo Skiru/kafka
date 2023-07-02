@@ -1,5 +1,4 @@
-controllers:
-    resource:
-        path: ../src/Controller/
-        namespace: App\Controller
-    type: attribute
+idp_create_user:
+    path: /users
+    controller: App\CreateUser\CreateUserController::create
+    methods: [POST]
