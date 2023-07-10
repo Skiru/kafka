@@ -33,6 +33,17 @@ services:
     networks:
       - purple-clouds-network
 
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - "8080:8080"
+    environment:
+      DYNAMIC_CONFIG_ENABLED: 'true'
+    depends_on:
+      - kafka
+    networks:
+      - purple-clouds-network
+
 volumes:
   zookeeper-volume:
   kafka-volume:
