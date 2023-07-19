@@ -3,7 +3,7 @@ Accept: application/json
 Content-Type: application/json
 
 {
-"id": "A65D5411-6E04-4501-9B60-E94053BCD72B",
-"email": "mateusz.koziol@houseofangular.io",
-"name": "mkoziol"
+  "id": "A65D5411-6E04-4501-9B60-E94053BCD72B",
+  "email": "mateusz.koziol@houseofangular.io",
+  "name": "mkoziol"
 }

@@ -11,59 +11,50 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-#[AsCommand('consume:users:create', 'Consumes messages after user creation')]
+#[AsCommand('consume:users:create:mailer', 'Consumes messages after user creation and sends an email')]
 final class CreateUserConsoleCommand extends Command
 {
+    private const USERS_TOPIC_NAME = 'USERS';
+    private const GROUP_ID = 'mailerUserCreateConsumerGroup';
+
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $output->writeln('Consuming messages');
+        $output->writeln(
+            sprintf(
+                'Consuming messages from topic: %s',
+                self::USERS_TOPIC_NAME,
+            ),
+        );
 
         $conf = new Conf();
-        // Set a rebalance callback to log partition assignments (optional)
-        $conf->setRebalanceCb(function (KafkaConsumer $kafka, $err, array $partitions = null) {
-            switch ($err) {
-                case RD_KAFKA_RESP_ERR__ASSIGN_PARTITIONS:
-                    echo "Assign: ";
-                    var_dump($partitions);
-                    $kafka->assign($partitions);
-                    break;
-
-                case RD_KAFKA_RESP_ERR__REVOKE_PARTITIONS:
-                    echo "Revoke: ";
-                    var_dump($partitions);
-                    $kafka->assign(NULL);
-                    break;
-
-                default:
-                    throw new \Exception($err);
-            }
-        });
         $conf->set('metadata.broker.list', 'purple-clouds_kafka_1:9092');
-        $conf->set('group.id', 'userCreateConsumerGroup');
+        $conf->set('group.id', self::GROUP_ID);
         $conf->set('auto.offset.reset', 'earliest');
         $conf->set('enable.partition.eof', 'true');
         $consumer = new KafkaConsumer($conf);
-        $consumer->subscribe(['USERS']);
 
-        echo "Waiting for partition assignment... (make take some time when\n";
-        echo "quickly re-joining the group after leaving it.)\n";
+        //Subscribe to topic
+        $consumer->subscribe([self::USERS_TOPIC_NAME]);
 
         while (true) {
-            $message = $consumer->consume(120 * 1000);
+            $message = $consumer->consume(10000);
 
             switch ($message->err) {
                 case RD_KAFKA_RESP_ERR_NO_ERROR:
+                    $output->writeln(
+                        sprintf('Consumed: %s', $message->payload)
+                    );
                     var_dump($message);
                     break;
                 case RD_KAFKA_RESP_ERR__PARTITION_EOF:
-                    echo "No more messages; will wait for more\n";
+                    $output->writeln('No more messages; will wait for more');
                     break;
                 case RD_KAFKA_RESP_ERR__TIMED_OUT:
-                    echo "Timed out\n";
+                    $output->writeln('Timed out');
 
                     return Command::FAILURE;
                 default:
-                    throw new \Exception($message->errstr(), $message->err, Command::FAILURE);
+                    throw new \LogicException($message->errstr(), $message->err);
             }
         }
     }
